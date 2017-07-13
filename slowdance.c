@@ -32,12 +32,12 @@
 
 #define NB_MODES 3
 // Fréquences en dHz
-int freqVib=800;
-int freqLed=810;
-volatile int perVib;
-volatile int perLed;
-volatile int perLedOn;
-volatile int perLedOff;
+unsigned int freqVib=800;
+unsigned int freqLed=810;
+volatile unsigned int perVib;
+volatile unsigned int perLed;
+volatile unsigned int perLedOn;
+volatile unsigned int perLedOff;
 
 volatile int ledOn=0;
 volatile int out=1;
@@ -65,7 +65,7 @@ void updateFreq()
   perVib = (10*CPU_FREQ/(freqVib*8));
   perLed = (10*CPU_FREQ/(freqLed*8));
   perLedOn = perLed>>3;
-  perLedOff = 2*perLed-perLedOn;
+  perLedOff = perLed-perLedOn+perLed;
 }
  
 
