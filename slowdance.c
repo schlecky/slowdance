@@ -138,15 +138,15 @@ void readADC(){
 
     long int deph = (1<<15)+TACCR1-TACCR2-perVib/2; 
     if(phaseShift==0){
-      if((deph%perVib) > perVib/8){
-        phaseShift = 10;
+      if((deph%perVib) < perVib/2){
+        phaseShift = -10;
         oldSum = currSum;
       } 
   
-    /*if((deph%perVib) < -perVib/8){
-        phaseShift = -10;
+      else{
+        phaseShift = 10;
         oldSum = currSum;
-      }*/
+      }
     }
   }
   updateFreq();
@@ -230,9 +230,11 @@ __attribute__((interrupt(TIMER0_A1_VECTOR))) void TimerA1(void)
       TACCR1+=perLedOff;
       if(phaseShift){
         int inc = perVib/10;
-        //if(phaseShift<0)
-        //  inc = -inc;
-        int delta = phaseShift>inc?inc:phaseShift;
+        int delta; 
+        if(phaseShift>0)  
+          delta = phaseShift>inc?inc:phaseShift;
+        else
+          delta = -phaseShift>inc?-inc:phaseShift;
         if(delta){
           TACCR1+= delta;
           phaseShift-=delta;
