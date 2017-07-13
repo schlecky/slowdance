@@ -64,7 +64,7 @@ void updateFreq()
 {
   perVib = (10*CPU_FREQ/(freqVib*8));
   perLed = (10*CPU_FREQ/(freqLed*8));
-  perLedOn = perLed>>3;
+  perLedOn = perLed/10;
   perLedOff = perLed-perLedOn+perLed;
 }
  
@@ -128,17 +128,25 @@ void readADC(){
 
 
   if(mode == 0){
-    freqLed = freqVib+20;
+    freqLed = freqVib+10;
   }
   else if((mode==1) || (mode==2)){
     if(mode==1)
       freqLed = freqVib;
     if(mode==2)
       freqLed = freqVib<<1;
-    if((abs(currSum-oldSum)>30) || doShift){
-      timer = 1;
-      doShift=0;
-      oldSum = currSum;
+
+    long int deph = (1<<15)+TACCR1-TACCR2-perVib/2; 
+    if(phaseShift==0){
+      if((deph%perVib) > perVib/8){
+        phaseShift = 10;
+        oldSum = currSum;
+      } 
+  
+    /*if((deph%perVib) < -perVib/8){
+        phaseShift = -10;
+        oldSum = currSum;
+      }*/
     }
   }
   updateFreq();
@@ -222,6 +230,8 @@ __attribute__((interrupt(TIMER0_A1_VECTOR))) void TimerA1(void)
       TACCR1+=perLedOff;
       if(phaseShift){
         int inc = perVib/10;
+        //if(phaseShift<0)
+        //  inc = -inc;
         int delta = phaseShift>inc?inc:phaseShift;
         if(delta){
           TACCR1+= delta;
@@ -262,10 +272,7 @@ __attribute__((interrupt(TIMER0_A0_VECTOR))) void TimerA0(void)
       if(mode == 1){
         if(cpt++ == 50){
           cpt = 0;
-          phaseShift=perVib;
-        }
-        if(--timer == 0){
-          TACCR1 = TACCR2+perVib>>1;
+          phaseShift+=perVib;
         }
       }       
 }
@@ -276,7 +283,8 @@ __attribute__((interrupt(TIMER0_A0_VECTOR))) void TimerA0(void)
  ***********************************/
 __attribute__((interrupt(ADC10_VECTOR))) void ADC10(void)
 {
-  readADC();
+  //readADC();
+  adc=1;
 }
 
 
